@@ -2,21 +2,36 @@ import logging
 
 import click
 
-from stactools.ephemeral import stac
+from stactools.bc_lidar import stac, cog
 
 logger = logging.getLogger(__name__)
 
 
-def create_ephemeralcmd_command(cli):
-    """Creates the stactools-ephemeral command line utility."""
+def create_bclidar_command(cli):
+    """Creates the stactools-bc-lidar command line utility."""
     @cli.group(
-        "ephemeralcmd",
-        short_help=("Commands for working with stactools-ephemeral"),
+        "bclidar",
+        short_help=("Commands for working with stactools-bc-lidar"),
     )
-    def ephemeralcmd():
+    def bclidar():
         pass
+    @bclidar.command(
+        "create-cog",
+        short_help="Creates a COG from a .tif file",
+    )
+    @click.argument("source")
+    @click.argument("destination")
+    def create_cog_command(source: str, destination: str) -> None:
+        """Creates a COG
+        Args:
+            source (str): An HREF for the .tif file.
+            destination (str): An HREF for the output COG.
+        """
+        cog.create_cog(source, destination)
 
-    @ephemeralcmd.command(
+        return None
+
+    @bclidar.command(
         "create-collection",
         short_help="Creates a STAC collection",
     )
@@ -35,7 +50,7 @@ def create_ephemeralcmd_command(cli):
 
         return None
 
-    @ephemeralcmd.command("create-item", short_help="Create a STAC item")
+    @bclidar.command("create-item", short_help="Create a STAC item")
     @click.argument("source")
     @click.argument("destination")
     def create_item_command(source: str, destination: str):
@@ -51,4 +66,4 @@ def create_ephemeralcmd_command(cli):
 
         return None
 
-    return ephemeralcmd
+    return bclidar
