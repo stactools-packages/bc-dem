@@ -2,20 +2,20 @@ import logging
 
 import click
 
-from stactools.bc_lidar import stac, cog
+from stactools.bc_dem import stac, cog
 
 logger = logging.getLogger(__name__)
 
 
-def create_bclidar_command(cli):
-    """Creates the stactools-bc-lidar command line utility."""
+def create_bcdem_command(cli):
+    """Creates the stactools-bc-dem command line utility."""
     @cli.group(
-        "bclidar",
-        short_help=("Commands for working with stactools-bc-lidar"),
+        "bcdem",
+        short_help=("Commands for working with stactools-bc-dem"),
     )
-    def bclidar():
+    def bcdem():
         pass
-    @bclidar.command(
+    @bcdem.command(
         "create-cog",
         short_help="Creates a COG from a .tif file",
     )
@@ -31,7 +31,7 @@ def create_bclidar_command(cli):
 
         return None
 
-    @bclidar.command(
+    @bcdem.command(
         "create-collection",
         short_help="Creates a STAC collection",
     )
@@ -50,7 +50,7 @@ def create_bclidar_command(cli):
 
         return None
 
-    @bclidar.command("create-item", short_help="Create a STAC item")
+    @bcdem.command("create-item", short_help="Create a STAC item")
     @click.argument("source")
     @click.argument("destination")
     def create_item_command(source: str, destination: str):
@@ -66,4 +66,4 @@ def create_bclidar_command(cli):
 
         return None
 
-    return bclidar
+    return bcdem
