@@ -1,7 +1,7 @@
 import logging
 from subprocess import CalledProcessError, check_output
 
-from stactools.usgs_nlcd.constants import TILING_PIXEL_SIZE
+from stactools.BC_DEM.constants import TILING_PIXEL_SIZE
 
 logger = logging.getLogger(__name__)
 
