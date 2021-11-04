@@ -4,115 +4,138 @@ import fsspec
 import pystac
 import pytz
 import rasterio
-
+from typing import Optional
+from pystac.extensions.version import VersionExtension
+from shapely.geometry import mapping, box
 from datetime import datetime, timezone
+from stactools.core.io import ReadHrefModifier
 
 from pystac import (Asset, CatalogType, Collection, Extent, Item, MediaType,
                     Provider, ProviderRole, SpatialExtent, TemporalExtent)
 from pystac.extensions.projection import ProjectionExtension
+from pystac.extensions.item_assets import AssetDefinition, ItemAssetsExtension
+from pystac.extensions.label import (LabelClasses, LabelExtension, LabelTask,
+                                     LabelType)
+from pystac.extensions.raster import (DataType, RasterBand, RasterExtension,
+                                      Sampling)
+
+from stactools.bc_dem.constants import (BCDEM_ID, BCDEM_EPSG,
+                                          BCDEM_CRS,LICENSE,DEM_link, LICENSE_LINK,SPATIAL_EXTENT,TEMPORAL_EXTENT,TILING_PIXEL_SIZE,THUMBNAIL_HREF,DESCRIPTION, TITLE, DEM_PROVIDER,BCDEM_Resolution,Unit)
+
 
 logger = logging.getLogger(__name__)
 
 
 def create_collection() -> Collection:
-    """Create a STAC Collection
-
-    This function includes logic to extract all relevant metadata from
-    an asset describing the STAC collection and/or metadata coded into an
-    accompanying constants.py file.
-
-    See `Collection<https://pystac.readthedocs.io/en/latest/api.html#collection>`_.
-
-    Returns:
-        Collection: STAC Collection object
-    """
+    
     providers = [
         Provider(
-            name="The OS Community",
+            name="Province of British Columbia",
             roles=[
                 ProviderRole.PRODUCER, ProviderRole.PROCESSOR,
                 ProviderRole.HOST
             ],
-            url="https://github.com/stac-utils/stactools",
+            url="https://governmentofbc.maps.arcgis.com/apps/MapSeries/index.html?appid=d06b37979b0c4709b7fcf2a1ed458e03",
         )
     ]
 
-    # Time must be in UTC
-    demo_time = datetime.now(tz=timezone.utc)
+
 
     extent = Extent(
-        SpatialExtent([[-180., 90., 180., -90.]]),
-        TemporalExtent([demo_time, None]),
+        SpatialExtent([SPATIAL_EXTENT]),
+        TemporalExtent(TEMPORAL_EXTENT),
     )
 
     collection = Collection(
-        id="my-collection-id",
-        title="A dummy STAC Collection",
-        description="Used for demonstration purposes",
-        license="CC-0",
-        providers=providers,
+        id=BCDEM_ID,
+        title=TITLE,
+        description=DESCRIPTION,
+        license=LICENSE,
+        providers=[DEM_PROVIDER],
         extent=extent,
         catalog_type=CatalogType.RELATIVE_PUBLISHED,
+        catalog_type=CatalogType.RELATIVE_PUBLISHED,
     )
+ # version extension
+    collection_version = VersionExtension.ext(collection, add_if_missing=True)
+    collection_proj = ProjectionExtension.summaries(collection,
+                                                    add_if_missing=True)
+    collection_proj.epsg = [BCDEM_EPSG]
 
-    return collection
+    collection_item_assets = ItemAssetsExtension.ext(collection,
+                                                     add_if_missing=True)
 
-
-def create_item(asset_href: str) -> Item:
-    """Create a STAC Item
-
-    This function should include logic to extract all relevant metadata from an
-    asset, metadata asset, and/or a constants.py file.
-
-    See `Item<https://pystac.readthedocs.io/en/latest/api.html#item>`_.
-
-    Args:
-        asset_href (str): The HREF pointing to an asset associated with the item
-
-    Returns:
-        Item: STAC Item object
-    """
-
-    properties = {
-        "title": "A dummy STAC Item",
-        "description": "Used for demonstration purposes",
+    collection_item_assets.item_assets = {
+      "DEM_Lidar":
+       AssetDefinition({
+           "type":
+          MediaType.COG,
+           "roles": [
+              "data",
+              "DEM",
+              "raster",
+           ],
+           "title":
+           "DEM from BC Lidar",
+           "raster:bands": [
+               RasterBand.create(sampling=Sampling.AREA,
+                                 data_type=DataType.UINT8
+                                 ).to_dict()
+           ],
+            "proj:epsg":
+            collection_proj.epsg[0]
+        }),
     }
+    
+    collection.add_link(LICENSE_LINK)
 
-    demo_geom = {
-        "type":
-        "Polygon",
-        "coordinates": [[[-180, -90], [180, -90], [180, 90], [-180, 90],
-                         [-180, -90]]],
-    }
+    return collection     
 
-    # Time must be in UTC
-    demo_time = datetime.now(tz=timezone.utc)
 
-    item = Item(
-        id="my-item-id",
-        properties=properties,
-        geometry=demo_geom,
-        bbox=[-180, 90, 180, -90],
-        datetime=demo_time,
-        stac_extensions=[],
-    )
+def create_item(cog_href: str,
+                cog_read_href_modifier: Optional[ReadHrefModifier] = None) -> Item:
+    
+  if cog_read_href_modifier:
+        modified_href = cog_read_href_modifier(cog_href)
+  else:
+        modified_href = cog_href
+        
+  with rasterio.open(modified_href) as dataset:
+        bbox = list(dataset.bounds)
+        geometry = mapping(box(*bbox))
+        transform = dataset.transform
+        shape = dataset.shape
+        size=dataset.size
+  item = Item(id=os.path.splitext(os.path.basename(cog_href))[0],
+                geometry=geometry,
+                bbox=bbox,
+                size=size,
+                properties={},
+                stac_extensions={})
 
-    # It is a good idea to include proj attributes to optimize for libs like stac-vrt
-    proj_attrs = ProjectionExtension.ext(item, add_if_missing=True)
-    proj_attrs.epsg = 4326
-    proj_attrs.bbox = [-180, 90, 180, -90]
-    proj_attrs.shape = [1, 1]  # Raster shape
-    proj_attrs.transform = [-180, 360, 0, 90, 0, 180]  # Raster GeoTransform
+  item.add_links(DEM_link)
+  item.common_metadata.resolution = BCDEM_Resolution
+  item.common_metadata.Unit =Unit
+  item.common_metadata.providers = DEM_PROVIDER
+  item.common_metadata.license = "proprietary"
+  
+  parts = os.path.basename(cog_href).split("_")
+  if len(parts) != 4:
+        raise ValueError(
+            f"Unexpected file name, expected four underscores in name: {os.path.basename(cog_href)}"
+        )
+  title = parts[1]
+  item.add_asset(
+        "data",
+        Asset(href=cog_href,
+              title=title,
+              description=None,
+              media_type=MediaType.COG,
+              roles=["data"]))
 
-    # Add an asset to the item (COG for example)
-    item.add_asset(
-        "image",
-        Asset(
-            href=asset_href,
-            media_type=MediaType.COG,
-            roles=["data"],
-            title="A dummy STAC Item COG",
-        ),
-    )
+  projection = ProjectionExtension.ext(item, add_if_missing=True)
+  projection.epsg = BCDEM_EPSG
+  projection.transform = transform[0:6]
+  projection.shape = shape
 
-    return item
+  return item
