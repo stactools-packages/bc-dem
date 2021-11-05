@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 def create_collection() -> Collection:
-    
+
     providers = [
         Provider(
             name="Province of British Columbia",
@@ -86,20 +86,20 @@ def create_collection() -> Collection:
             collection_proj.epsg[0]
         }),
     }
-    
+
     collection.add_link(LICENSE_LINK)
 
-    return collection     
+    return collection
 
 
 def create_item(cog_href: str,
                 cog_read_href_modifier: Optional[ReadHrefModifier] = None) -> Item:
-    
+
   if cog_read_href_modifier:
         modified_href = cog_read_href_modifier(cog_href)
   else:
         modified_href = cog_href
-        
+
   with rasterio.open(modified_href) as dataset:
         bbox = list(dataset.bounds)
         geometry = mapping(box(*bbox))
@@ -118,7 +118,7 @@ def create_item(cog_href: str,
   item.common_metadata.Unit =Unit
   item.common_metadata.providers = DEM_PROVIDER
   item.common_metadata.license = "proprietary"
-  
+
   parts = os.path.basename(cog_href).split("_")
   if len(parts) != 4:
         raise ValueError(
