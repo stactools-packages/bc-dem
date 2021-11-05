@@ -20,7 +20,7 @@ from pystac.extensions.raster import (DataType, RasterBand, RasterExtension,
                                       Sampling)
 
 from stactools.bc_dem.constants import (BCDEM_ID, BCDEM_EPSG,
-                                          BCDEM_CRS,LICENSE,DEM_link, LICENSE_LINK,SPATIAL_EXTENT,TEMPORAL_EXTENT,TILING_PIXEL_SIZE,THUMBNAIL_HREF,DESCRIPTION, TITLE, DEM_PROVIDER,BCDEM_Resolution,Unit)
+                                          BCDEM_CRS,LICENSE,DEM_link, LICENSE_LINK,SPATIAL_EXTENT,START_DATE,TEMPORAL_EXTENT,TILING_PIXEL_SIZE,THUMBNAIL_HREF,DESCRIPTION, TITLE, DEM_PROVIDER,BCDEM_Resolution,Unit)
 
 
 logger = logging.getLogger(__name__)
@@ -54,13 +54,12 @@ def create_collection() -> Collection:
         providers=[DEM_PROVIDER],
         extent=extent,
         catalog_type=CatalogType.RELATIVE_PUBLISHED,
-        catalog_type=CatalogType.RELATIVE_PUBLISHED,
     )
  # version extension
     collection_version = VersionExtension.ext(collection, add_if_missing=True)
     collection_proj = ProjectionExtension.summaries(collection,
                                                     add_if_missing=True)
-    collection_proj.epsg = [BCDEM_EPSG]
+    collection_proj.epsg = BCDEM_EPSG
 
     collection_item_assets = ItemAssetsExtension.ext(collection,
                                                      add_if_missing=True)
@@ -83,7 +82,7 @@ def create_collection() -> Collection:
                                  ).to_dict()
            ],
             "proj:epsg":
-            collection_proj.epsg[0]
+            collection_proj.epsg
         }),
     }
     
@@ -99,17 +98,17 @@ def create_item(cog_href: str,
         modified_href = cog_read_href_modifier(cog_href)
   else:
         modified_href = cog_href
-        
+
   with rasterio.open(modified_href) as dataset:
         bbox = list(dataset.bounds)
         geometry = mapping(box(*bbox))
         transform = dataset.transform
         shape = dataset.shape
-        size=dataset.size
+        
   item = Item(id=os.path.splitext(os.path.basename(cog_href))[0],
                 geometry=geometry,
                 bbox=bbox,
-                size=size,
+                datetime=START_DATE,
                 properties={},
                 stac_extensions={})
 
