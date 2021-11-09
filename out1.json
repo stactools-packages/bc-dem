@@ -1,0 +1,80 @@
+{
+  "type": "Feature",
+  "stac_version": "1.0.0",
+  "id": "bc_092g045_xl1m_utm10_170713",
+  "properties": {
+    "providers": [
+      {
+        "name": "Province of British Columbia",
+        "roles": [
+          "producer",
+          "processor",
+          "host"
+        ],
+        "url": "https://governmentofbc.maps.arcgis.com/apps/MapSeries/index.html?appid=d06b37979b0c4709b7fcf2a1ed458e03"
+      }
+    ],
+    "license": "proprietary",
+    "proj:epsg": 3157,
+    "proj:transform": [
+      1.0,
+      0.0,
+      485489.0,
+      0.0,
+      -1.0,
+      5473867.0
+    ],
+    "proj:shape": [
+      1943,
+      14512
+    ],
+    "datetime": "2016-01-01T00:00:00Z"
+  },
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          500001.0,
+          5471924.0
+        ],
+        [
+          500001.0,
+          5473867.0
+        ],
+        [
+          485489.0,
+          5473867.0
+        ],
+        [
+          485489.0,
+          5471924.0
+        ],
+        [
+          500001.0,
+          5471924.0
+        ]
+      ]
+    ]
+  },
+  "links": [],
+  "assets": {
+    "data": {
+      "href": "tests/data-files/bc_092g045_xl1m_utm10_170713.tif",
+      "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+      "title": "092g045",
+      "roles": [
+        "data"
+      ]
+    }
+  },
+  "bbox": [
+    485489.0,
+    5471924.0,
+    500001.0,
+    5473867.0
+  ],
+  "stac_extensions": [
+    "https://stac-extensions.github.io/projection/v1.0.0/schema.json"
+  ]
+}

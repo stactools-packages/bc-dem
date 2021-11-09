@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from pyproj import CRS
 from pystac import Link, Provider, ProviderRole
 

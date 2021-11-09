@@ -5,6 +5,7 @@ import pystac
 import pytz
 import rasterio
 from typing import Optional
+from pystac import Link, Provider, ProviderRole
 from pystac.extensions.version import VersionExtension
 from shapely.geometry import mapping, box
 from datetime import datetime, timezone
@@ -112,17 +113,12 @@ def create_item(cog_href: str,
                 properties={},
                 stac_extensions={})
 
-  item.add_links(DEM_link)
   item.common_metadata.resolution = BCDEM_Resolution
   item.common_metadata.Unit =Unit
-  item.common_metadata.providers = DEM_PROVIDER
+  item.common_metadata.providers = [DEM_PROVIDER]
   item.common_metadata.license = "proprietary"
 
   parts = os.path.basename(cog_href).split("_")
-  if len(parts) != 4:
-        raise ValueError(
-            f"Unexpected file name, expected four underscores in name: {os.path.basename(cog_href)}"
-        )
   title = parts[1]
   item.add_asset(
         "data",

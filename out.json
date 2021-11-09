@@ -1,0 +1,77 @@
+{
+  "type": "Collection",
+  "id": "BC_DEM",
+  "stac_version": "1.0.0",
+  "description": "LidarBC's Open LiDAR Data Portal is an initiative to provide open public access to LiDAR and associated datasets collected by the Province of British Columbia. The data presented herein is released as Open Data under the Open Government Licence \u2013 British Columbia (OGL-BC).\nDigital Elevation Model (DEM) is a derivative product of LiDAR and a representation of the terrain bare earth surface. The bare earth DEM is developed by removing vegetation and structures from the LiDAR data and developed through interpolation of the elevation data.",
+  "links": [
+    {
+      "rel": "root",
+      "href": "./out.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "license",
+      "href": "https://www2.gov.bc.ca/gov/content/data/open-data/open-government-licence-bc",
+      "title": "Open Government Licence - British Columbia"
+    },
+    {
+      "rel": "self",
+      "href": "/Users/rolitta/Desktop/COP26/bc-dem/out.json",
+      "type": "application/json"
+    }
+  ],
+  "stac_extensions": [
+    "https://stac-extensions.github.io/version/v1.0.0/schema.json",
+    "https://stac-extensions.github.io/projection/v1.0.0/schema.json",
+    "https://stac-extensions.github.io/item-assets/v1.0.0/schema.json"
+  ],
+  "item_assets": {
+    "DEM_Lidar": {
+      "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+      "roles": [
+        "data",
+        "DEM",
+        "raster"
+      ],
+      "title": "DEM from BC Lidar",
+      "raster:bands": [
+        {
+          "sampling": "area",
+          "data_type": "uint8"
+        }
+      ],
+      "proj:epsg": null
+    }
+  },
+  "title": "LidarBC",
+  "extent": {
+    "spatial": {
+      "bbox": [
+        []
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2016-01-01T00:00:00Z",
+          "2019-12-31T00:00:00Z"
+        ]
+      ]
+    }
+  },
+  "license": "proprietary",
+  "providers": [
+    {
+      "name": "Province of British Columbia",
+      "roles": [
+        "producer",
+        "processor",
+        "host"
+      ],
+      "url": "https://governmentofbc.maps.arcgis.com/apps/MapSeries/index.html?appid=d06b37979b0c4709b7fcf2a1ed458e03"
+    }
+  ],
+  "summaries": {
+    "proj:epsg": 3157
+  }
+}
