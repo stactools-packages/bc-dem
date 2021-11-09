@@ -10,6 +10,7 @@ from stactools.bc_dem.constants import TILING_PIXEL_SIZE
 
 logger = logging.getLogger(__name__)
 
+
 def create_retiled_cogs(
     input_path: str,
     output_directory: str,
@@ -69,6 +70,7 @@ def create_retiled_cogs(
             raise
 
     return output_directory
+
 
 def create_cog(
     input_path: str,

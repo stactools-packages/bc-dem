@@ -1,28 +1,61 @@
 import logging
 import os
+from datetime import datetime, timezone
+from typing import Optional
+
 import fsspec
 import pystac
 import pytz
 import rasterio
-from typing import Optional
-from pystac import Link, Provider, ProviderRole
+from pystac import (
+    Asset,
+    CatalogType,
+    Collection,
+    Extent,
+    Item,
+    Link,
+    MediaType,
+    Provider,
+    ProviderRole,
+    SpatialExtent,
+    TemporalExtent,
+)
+from pystac.extensions.item_assets import AssetDefinition, ItemAssetsExtension
+from pystac.extensions.label import (
+    LabelClasses,
+    LabelExtension,
+    LabelTask,
+    LabelType,
+)
+from pystac.extensions.projection import ProjectionExtension
+from pystac.extensions.raster import (
+    DataType,
+    RasterBand,
+    RasterExtension,
+    Sampling,
+)
 from pystac.extensions.version import VersionExtension
-from shapely.geometry import mapping, box
-from datetime import datetime, timezone
+from shapely.geometry import box, mapping
 from stactools.core.io import ReadHrefModifier
 
-from pystac import (Asset, CatalogType, Collection, Extent, Item, MediaType,
-                    Provider, ProviderRole, SpatialExtent, TemporalExtent)
-from pystac.extensions.projection import ProjectionExtension
-from pystac.extensions.item_assets import AssetDefinition, ItemAssetsExtension
-from pystac.extensions.label import (LabelClasses, LabelExtension, LabelTask,
-                                     LabelType)
-from pystac.extensions.raster import (DataType, RasterBand, RasterExtension,
-                                      Sampling)
-
-from stactools.bc_dem.constants import (BCDEM_ID, BCDEM_EPSG,
-                                          BCDEM_CRS,LICENSE,DEM_link, LICENSE_LINK,SPATIAL_EXTENT,START_DATE,TEMPORAL_EXTENT,TILING_PIXEL_SIZE,THUMBNAIL_HREF,DESCRIPTION, TITLE, DEM_PROVIDER,BCDEM_Resolution,Unit)
-
+from stactools.bc_dem.constants import (
+    BCDEM_CRS,
+    BCDEM_EPSG,
+    BCDEM_ID,
+    DEM_PROVIDER,
+    DESCRIPTION,
+    LICENSE,
+    LICENSE_LINK,
+    SPATIAL_EXTENT,
+    START_DATE,
+    TEMPORAL_EXTENT,
+    THUMBNAIL_HREF,
+    TILING_PIXEL_SIZE,
+    TITLE,
+    BCDEM_Resolution,
+    DEM_link,
+    Unit,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -36,11 +69,10 @@ def create_collection() -> Collection:
                 ProviderRole.PRODUCER, ProviderRole.PROCESSOR,
                 ProviderRole.HOST
             ],
-            url="https://governmentofbc.maps.arcgis.com/apps/MapSeries/index.html?appid=d06b37979b0c4709b7fcf2a1ed458e03",
+            url=
+            "https://governmentofbc.maps.arcgis.com/apps/MapSeries/index.html?appid=d06b37979b0c4709b7fcf2a1ed458e03",
         )
     ]
-
-
 
     extent = Extent(
         SpatialExtent([SPATIAL_EXTENT]),
@@ -56,7 +88,7 @@ def create_collection() -> Collection:
         extent=extent,
         catalog_type=CatalogType.RELATIVE_PUBLISHED,
     )
- # version extension
+    # version extension
     collection_version = VersionExtension.ext(collection, add_if_missing=True)
     collection_proj = ProjectionExtension.summaries(collection,
                                                     add_if_missing=True)
@@ -66,22 +98,21 @@ def create_collection() -> Collection:
                                                      add_if_missing=True)
 
     collection_item_assets.item_assets = {
-      "DEM_Lidar":
-       AssetDefinition({
-           "type":
-          MediaType.COG,
-           "roles": [
-              "data",
-              "DEM",
-              "raster",
-           ],
-           "title":
-           "DEM from BC Lidar",
-           "raster:bands": [
-               RasterBand.create(sampling=Sampling.AREA,
-                                 data_type=DataType.UINT8
-                                 ).to_dict()
-           ],
+        "DEM_Lidar":
+        AssetDefinition({
+            "type":
+            MediaType.COG,
+            "roles": [
+                "data",
+                "DEM",
+                "raster",
+            ],
+            "title":
+            "DEM from BC Lidar",
+            "raster:bands": [
+                RasterBand.create(sampling=Sampling.AREA,
+                                  data_type=DataType.UINT8).to_dict()
+            ],
             "proj:epsg":
             collection_proj.epsg
         }),
@@ -92,35 +123,36 @@ def create_collection() -> Collection:
     return collection
 
 
-def create_item(cog_href: str,
-                cog_read_href_modifier: Optional[ReadHrefModifier] = None) -> Item:
+def create_item(
+        cog_href: str,
+        cog_read_href_modifier: Optional[ReadHrefModifier] = None) -> Item:
 
-  if cog_read_href_modifier:
+    if cog_read_href_modifier:
         modified_href = cog_read_href_modifier(cog_href)
-  else:
+    else:
         modified_href = cog_href
 
-  with rasterio.open(modified_href) as dataset:
+    with rasterio.open(modified_href) as dataset:
         bbox = list(dataset.bounds)
         geometry = mapping(box(*bbox))
         transform = dataset.transform
         shape = dataset.shape
-        
-  item = Item(id=os.path.splitext(os.path.basename(cog_href))[0],
+
+    item = Item(id=os.path.splitext(os.path.basename(cog_href))[0],
                 geometry=geometry,
                 bbox=bbox,
                 datetime=START_DATE,
                 properties={},
                 stac_extensions={})
 
-  item.common_metadata.resolution = BCDEM_Resolution
-  item.common_metadata.Unit =Unit
-  item.common_metadata.providers = [DEM_PROVIDER]
-  item.common_metadata.license = "proprietary"
+    item.common_metadata.resolution = BCDEM_Resolution
+    item.common_metadata.Unit = Unit
+    item.common_metadata.providers = [DEM_PROVIDER]
+    item.common_metadata.license = "proprietary"
 
-  parts = os.path.basename(cog_href).split("_")
-  title = parts[1]
-  item.add_asset(
+    parts = os.path.basename(cog_href).split("_")
+    title = parts[1]
+    item.add_asset(
         "data",
         Asset(href=cog_href,
               title=title,
@@ -128,9 +160,9 @@ def create_item(cog_href: str,
               media_type=MediaType.COG,
               roles=["data"]))
 
-  projection = ProjectionExtension.ext(item, add_if_missing=True)
-  projection.epsg = BCDEM_EPSG
-  projection.transform = transform[0:6]
-  projection.shape = shape
+    projection = ProjectionExtension.ext(item, add_if_missing=True)
+    projection.epsg = BCDEM_EPSG
+    projection.transform = transform[0:6]
+    projection.shape = shape
 
-  return item
+    return item

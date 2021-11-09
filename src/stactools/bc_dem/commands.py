@@ -2,7 +2,7 @@ import logging
 
 import click
 
-from stactools.bc_dem import stac, cog
+from stactools.bc_dem import cog, stac
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +15,7 @@ def create_bcdem_command(cli):
     )
     def bcdem():
         pass
+
     @bcdem.command(
         "create-cog",
         short_help="Creates a COG from a .tif file",
