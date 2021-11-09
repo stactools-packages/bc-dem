@@ -50,7 +50,6 @@ from stactools.bc_dem.constants import (
     START_DATE,
     TEMPORAL_EXTENT,
     THUMBNAIL_HREF,
-    TILING_PIXEL_SIZE,
     TITLE,
     BCDEM_Resolution,
     DEM_link,

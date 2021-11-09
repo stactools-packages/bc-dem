@@ -16,7 +16,6 @@ LICENSE_LINK = Link(rel="license",
 SPATIAL_EXTENT = []
 START_DATE = datetime(2016, 1, 1)
 TEMPORAL_EXTENT = [datetime(2016, 1, 1) or None, datetime(2019, 12, 31)]
-TILING_PIXEL_SIZE = (1.000000000000000, -1.000000000000000)
 THUMBNAIL_HREF = ""
 DESCRIPTION = """LidarBC's Open LiDAR Data Portal is an initiative to provide open public access to LiDAR and associated datasets collected by the Province of British Columbia. The data presented herein is released as Open Data under the Open Government Licence – British Columbia (OGL-BC).
 Digital Elevation Model (DEM) is a derivative product of LiDAR and a representation of the terrain bare earth surface. The bare earth DEM is developed by removing vegetation and structures from the LiDAR data and developed through interpolation of the elevation data."""
