@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 def create_bcdem_command(cli):
     """Creates the stactools-bc-dem command line utility."""
     @cli.group(
-        "bcdem",
+        "bc-dem",
         short_help=("Commands for working with stactools-bc-dem"),
     )
     def bcdem():
@@ -46,9 +46,8 @@ def create_bcdem_command(cli):
             destination (str): An HREF for the Collection JSON
         """
         collection = stac.create_collection()
-
         collection.set_self_href(destination)
-
+        collection.validate()
         collection.save_object()
 
         return None
@@ -64,7 +63,7 @@ def create_bcdem_command(cli):
             destination (str): An HREF for the STAC Collection
         """
         item = stac.create_item(source)
-
+        item.validate()
         item.save_object(dest_href=destination)
 
         return None
