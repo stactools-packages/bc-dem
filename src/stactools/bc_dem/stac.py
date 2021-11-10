@@ -119,12 +119,30 @@ def create_item(
         transform = dataset.transform
         shape = dataset.shape
 
-    # TODO: Get the year of the tile. From the filename?
+        tags = dataset.tags()
+        if "AREA_OR_POINT" in tags:
+            if tags["AREA_OR_POINT"] == "Area":
+                sampling = Sampling.AREA
+            elif tags["AREA_OR_POINT"] == "Point":
+                sampling = Sampling.POINT
+            else:
+                raise ValueError(
+                    f"Unknown sampling type {tags['AREA_OR_POINT']}")
+        else:
+            logger.info(
+                "Could not load sampling type from COG. Assuming 'Area'")
+            sampling = Sampling.AREA
+        if "YEAR" in tags:
+            year = int(tags["YEAR"])
+        else:
+            raise ValueError(
+                "Year of collection could not be ascertained from COG.")
+
     item = Item(
         id=os.path.splitext(os.path.basename(cog_href))[0],
         geometry=geometry,
-        bbox=bbox,
-        datetime=START_DATE,
+        bbox=bbox,  # TODO: this bbox should be in 4326
+        datetime=datetime(year, 1, 1),
         properties={},
         stac_extensions=[],
     )
@@ -162,7 +180,7 @@ def create_item(
     cog_asset_raster.bands = [
         RasterBand.create(
             nodata=NO_DATA,
-            sampling=Sampling.AREA,
+            sampling=sampling,
             data_type=DataType.FLOAT32,
             spatial_resolution=SPATIAL_RESOLUTION,
         )

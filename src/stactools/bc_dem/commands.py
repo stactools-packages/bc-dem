@@ -20,15 +20,17 @@ def create_bcdem_command(cli):
         "create-cog",
         short_help="Creates a COG from a .tif file",
     )
-    @click.argument("source")
+    @click.argument("source", type=click.Path(exists=True))
+    @click.argument("year")
     @click.argument("destination")
-    def create_cog_command(source: str, destination: str) -> None:
+    def create_cog_command(source: str, year: int, destination: str) -> None:
         """Creates a COG
         Args:
-            source (str): An HREF for the .tif file.
+            source (str): An HREF for the GeoTIFF file.
+            year (int): Year the data was collected.
             destination (str): An HREF for the output COG.
         """
-        cog.create_cog(source, destination)
+        cog.create_cog(source, year, destination)
 
         return None
 
