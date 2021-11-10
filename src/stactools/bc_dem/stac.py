@@ -1,5 +1,6 @@
 import logging
 import os
+from datetime import datetime
 from typing import Optional
 
 import fsspec
@@ -28,6 +29,7 @@ from stactools.core.io import ReadHrefModifier
 
 from stactools.bc_dem.constants import (
     COLLECTION_ID,
+    COLLECTION_TITLE,
     CRS_WKT,
     DESCRIPTION,
     EPSG,
@@ -37,11 +39,8 @@ from stactools.bc_dem.constants import (
     PROVIDERS,
     SPATIAL_EXTENT,
     SPATIAL_RESOLUTION,
-    START_DATE,
     TEMPORAL_EXTENT,
     THUMBNAIL_HREF,
-    TITLE,
-    UNIT,
 )
 
 logger = logging.getLogger(__name__)
@@ -51,7 +50,7 @@ def create_collection() -> Collection:
 
     collection = Collection(
         id=COLLECTION_ID,
-        title=TITLE,
+        title=COLLECTION_TITLE,
         description=DESCRIPTION,
         license=LICENSE,
         providers=PROVIDERS,
@@ -79,25 +78,22 @@ def create_collection() -> Collection:
 
     collection_item_assets = ItemAssetsExtension.ext(collection,
                                                      add_if_missing=True)
-
     collection_item_assets.item_assets = {
-        "DEM_Lidar":
+        "data":
         AssetDefinition({
             "type":
             MediaType.COG,
-            "roles": [
-                "data",
-                "DEM",
-                "raster",
-            ],
-            "title":
-            "DEM from BC Lidar",
+            "roles": ["data"],
             "raster:bands": [
-                RasterBand.create(sampling=Sampling.AREA,
-                                  data_type=DataType.UINT8).to_dict()
+                RasterBand.create(
+                    nodata=NO_DATA,
+                    sampling=Sampling.AREA,
+                    data_type=DataType.FLOAT32,
+                    spatial_resolution=SPATIAL_RESOLUTION,
+                ).to_dict()
             ],
             "proj:epsg":
-            collection_proj.epsg,
+            collection_proj.epsg[0],
         }),
     }
     return collection
@@ -139,7 +135,7 @@ def create_item(
                 "Year of collection could not be ascertained from COG.")
 
     item = Item(
-        id=os.path.splitext(os.path.basename(cog_href))[0],
+        id=os.path.basename(cog_href).replace(".tif", ""),
         geometry=geometry,
         bbox=bbox,  # TODO: this bbox should be in 4326
         datetime=datetime(year, 1, 1),
@@ -147,17 +143,16 @@ def create_item(
         stac_extensions=[],
     )
 
-    item.common_metadata.resolution = SPATIAL_RESOLUTION
-    item.common_metadata.unit = UNIT
     item.common_metadata.providers = PROVIDERS
     item.common_metadata.license = "proprietary"
 
     parts = os.path.basename(cog_href).split("_")
-    title = parts[1]
+    title = f"BCGS Tile {parts[1]}"
 
     item_projection = ProjectionExtension.ext(item, add_if_missing=True)
     item_projection.epsg = EPSG
     item_projection.wkt2 = CRS_WKT
+    item_projection.bbox = bbox
     item_projection.transform = transform
     item_projection.shape = shape
 
