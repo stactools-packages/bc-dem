@@ -13,10 +13,10 @@ def create_bcdem_command(cli):
         "bc-dem",
         short_help=("Commands for working with stactools-bc-dem"),
     )
-    def bcdem():
+    def bc_dem():
         pass
 
-    @bcdem.command(
+    @bc_dem.command(
         "create-cog",
         short_help="Creates a COG from a .tif file",
     )
@@ -34,7 +34,7 @@ def create_bcdem_command(cli):
 
         return None
 
-    @bcdem.command(
+    @bc_dem.command(
         "create-collection",
         short_help="Creates a STAC collection",
     )
@@ -52,7 +52,7 @@ def create_bcdem_command(cli):
 
         return None
 
-    @bcdem.command("create-item", short_help="Create a STAC item")
+    @bc_dem.command("create-item", short_help="Create a STAC item")
     @click.argument("source")
     @click.argument("destination")
     def create_item_command(source: str, destination: str):
@@ -68,4 +68,4 @@ def create_bcdem_command(cli):
 
         return None
 
-    return bcdem
+    return bc_dem
