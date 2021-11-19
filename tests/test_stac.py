@@ -87,7 +87,7 @@ class StacTest(unittest.TestCase):
 
             collection = pystac.read_file(collection_path)
 
-            item_asset = collection.extra_fields["item_assets"]
+            item_asset = collection.extra_fields["item_assets"]["data"]
             summaries = collection.summaries.to_dict()
 
             assert "thumbnail" in collection.assets
