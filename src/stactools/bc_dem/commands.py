@@ -2,36 +2,39 @@ import logging
 
 import click
 
-from stactools.bc_lidar import stac, cog
+from stactools.bc_dem import cog, stac
 
 logger = logging.getLogger(__name__)
 
 
-def create_bclidar_command(cli):
-    """Creates the stactools-bc-lidar command line utility."""
+def create_bcdem_command(cli):
+    """Creates the stactools-bc-dem command line utility."""
     @cli.group(
-        "bclidar",
-        short_help=("Commands for working with stactools-bc-lidar"),
+        "bc-dem",
+        short_help=("Commands for working with stactools-bc-dem"),
     )
-    def bclidar():
+    def bc_dem():
         pass
-    @bclidar.command(
+
+    @bc_dem.command(
         "create-cog",
         short_help="Creates a COG from a .tif file",
     )
-    @click.argument("source")
+    @click.argument("source", type=click.Path(exists=True))
+    @click.argument("year")
     @click.argument("destination")
-    def create_cog_command(source: str, destination: str) -> None:
+    def create_cog_command(source: str, year: int, destination: str) -> None:
         """Creates a COG
         Args:
-            source (str): An HREF for the .tif file.
+            source (str): An HREF for the GeoTIFF file.
+            year (int): Year the data was collected.
             destination (str): An HREF for the output COG.
         """
-        cog.create_cog(source, destination)
+        cog.create_cog(source, year, destination)
 
         return None
 
-    @bclidar.command(
+    @bc_dem.command(
         "create-collection",
         short_help="Creates a STAC collection",
     )
@@ -43,14 +46,13 @@ def create_bclidar_command(cli):
             destination (str): An HREF for the Collection JSON
         """
         collection = stac.create_collection()
-
         collection.set_self_href(destination)
-
+        collection.validate()
         collection.save_object()
 
         return None
 
-    @bclidar.command("create-item", short_help="Create a STAC item")
+    @bc_dem.command("create-item", short_help="Create a STAC item")
     @click.argument("source")
     @click.argument("destination")
     def create_item_command(source: str, destination: str):
@@ -61,9 +63,9 @@ def create_bclidar_command(cli):
             destination (str): An HREF for the STAC Collection
         """
         item = stac.create_item(source)
-
+        item.validate()
         item.save_object(dest_href=destination)
 
         return None
 
-    return bclidar
+    return bc_dem
