@@ -97,8 +97,4 @@ class StacTest(unittest.TestCase):
             assert "proj:epsg" in item_asset
             assert "proj:epsg" in summaries
 
-            # File Extension
-            assert "file:values" in item_asset
-            assert len(item_asset["file:values"]) > 0
-
             collection.validate()
